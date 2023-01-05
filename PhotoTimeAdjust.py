@@ -1,51 +1,54 @@
 from exif import Image, DATETIME_STR_FORMAT
 import os
 import datetime
-import piexif
 
 # Define FIRST picture's current date, then enter it's desired date
-CURRENT_DATE = datetime.datetime(1970, 1, 1)
-DESIRED_DATE = datetime.datetime(2000, 1, 1)
+CURRENT_DATE = datetime.datetime(year = 2022, month = 1, day = 22, hour = 22, minute = 43, second = 26)
+DESIRED_DATE = datetime.datetime(year = 2022, month = 2, day = 1, hour = 0, minute = 0, second = 0)
 
-timeDifference = CURRENT_DATE - DESIRED_DATE
+# Change these variables to 'True' to overwrite the "date digitized" and/or "date created" EXIF fields
+OVERWRITE_DATEDIGITIZED = True
+OVERWRITE_DATEORIGINAL = True
 
-def changeImageDateTime(imageFilename, offset):
+TimeDelta = CURRENT_DATE - DESIRED_DATE
+
+def changeImageDateTime(imageFilename, timeDelta, OVERWRITE_DATEDIGITIZED, OVERWRITE_DATEORIGINAL):
     
     image = Image(imageFilename)
+    fileTrueDate = datetime.datetime(
+        year = int(image.get("datetime")[0:4]),
+        month = int(image.get("datetime")[5:7]),
+        day = int(image.get("datetime")[8:10]),
+        hour = int(image.get("datetime")[11:13]),
+        minute = int(image.get("datetime")[14:16]),
+        second = int(image.get("datetime")[17:]),
+    )
+    fileTrueDate -= timeDelta # 
     
-    if (image.get("datetime")) == "None":
-        print(f"!!! {imageFilename} did not have EXIF -datetime- data so it wasn't changed and the image was skipped.")
+    if image.get("datetime") == "None" or image.get("datetime") == "":
+        print(f"!!! NO EXIF DATA IN {imageFilename}\n!!! CANNOT DETERMINE ORIGINAL DATETIME\n!!! IMAGE SKIPPED")
         return
     else:
-        newDateTime = image.datetime # + offset
-        image.set("datetime", newDateTime)
-        print(f"{imageFilename} + 's -datetime- field was set to {newDateTime}")
+        image.datetime = fileTrueDate.strftime(DATETIME_STR_FORMAT)
+        print(f"SET {imageFilename} DATETIME: {fileTrueDate}")
         
-    if (image.get("datetime_digitized")) == "None":
-        print(f"!!! {imageFilename} did not have EXIF -datetime_digitized- data so -datetime- will be written instead")
-        image.set("datetime_digitized", image.datetime)
-    else:
-        newDateTime = image.datetime_digitized#  + offset
-        image.set("datetime_digitized", newDateTime)
-        print(f"{imageFilename}'s -datetime_digitized- field was set to {newDateTime}")
+    if OVERWRITE_DATEDIGITIZED:
+        image.datetime_digitized = fileTrueDate.strftime(DATETIME_STR_FORMAT)
+        print(f"SET {imageFilename} DATETIME_DIGITIZED: {fileTrueDate}")
         
-    if (image.get("datetime_original")) == "None":
-        print(f"!!!{imageFilename} did not have EXIF -datetime_original- data so -datetime- will be written instead")
-        image.set("datetime_original", image.datetime)
-    else:
-        newDateTime = image.datetime_original# + offset
-        image.set("datetime_original", newDateTime)
-        print(f"{imageFilename}'s -datetime_original- field was set to {newDateTime}")
+    if OVERWRITE_DATEORIGINAL:
+        image.datetime_original = fileTrueDate.strftime(DATETIME_STR_FORMAT)
+        print(f"SET {imageFilename} DATETIME_ORIGINAL: {fileTrueDate}")
     
-    
-
+    with open(imageFilename, 'wb') as new_image_file:
+        new_image_file.write(image.get_file())
 
 # Get current directory
 Directory = os.getcwd()
 
-# Loop through images in that directory, check if file is a valid image, and change it's EXIF data
+# Loop through images in that directory, check if file is a valid image, and change it's EXIF data based on timeDifference
 for file in os.listdir(Directory):
     if (file.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp', '.gif'))):
-        changeImageDateTime(file, timeDifference)
+        changeImageDateTime(file, TimeDelta, OVERWRITE_DATEDIGITIZED, OVERWRITE_DATEORIGINAL)
     else:
         continue
