@@ -1,7 +1,7 @@
 '''
 This script will determine the difference between two dates and then
 shift the EXIF metadata of all picture files in the same directory by
-the date difference.y
+the date difference.
 '''
 
 
