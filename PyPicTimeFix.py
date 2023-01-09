@@ -9,6 +9,7 @@ from exif import Image, DATETIME_STR_FORMAT
 import os
 import datetime
 
+
 # The currently set date and time of one of the pictures.
 CURRENT_DATE = datetime.datetime(
     year = 2022,
@@ -31,6 +32,21 @@ DESIRED_DATE = datetime.datetime(
 # and "dateoriginal" EXIF fields.
 OVERWRITE_DATEDIGITIZED = True
 OVERWRITE_DATEORIGINAL = True
+
+
+def get_num_of_pics(given_directory):
+    '''Returns the number of picture files in a given directory.'''
+
+    file_count = 0
+
+    for file in os.listdir(given_directory):
+        if (file.lower().endswith((
+                '.png', '.jpg',
+                '.jpeg', '.tiff',
+                '.bmp', '.gif'))):
+            file_count += 1
+    
+    return file_count
 
 
 def change_image_datetime(
@@ -58,9 +74,9 @@ def change_image_datetime(
               + "!!! CANNOT DETERMINE ORIGINAL DATETIME\n"
               + "!!! IMAGE SKIPPED")
         return
-    else:
-        image.datetime = fixed_date.strftime(DATETIME_STR_FORMAT)
-        print(f"SET {image_filename} DATETIME: {fixed_date}")
+
+    image.datetime = fixed_date.strftime(DATETIME_STR_FORMAT)
+    print(f"SET {image_filename} DATETIME: {fixed_date}")
         
     if overwrite_datedigitized:
         image.datetime_digitized = fixed_date.strftime(DATETIME_STR_FORMAT)
@@ -73,29 +89,29 @@ def change_image_datetime(
     with open(image_filename, 'wb') as new_image_file:
         new_image_file.write(image.get_file())
 
-
-file_count = 0
-for file in os.listdir(os.getcwd()):
-    if (file.lower().endswith((
-            '.png', '.jpg',
-            '.jpeg', '.tiff',
-            '.bmp', '.gif'))):
-        file_count += 1
+def main():
     
-print(f"{file_count} picture files were found\nContinue?")
-if input() == "yes":
-    for file in os.listdir(os.getcwd()):
-        if (file.lower().endswith((
-            '.png', '.jpg',
-            '.jpeg', '.tiff',
-            '.bmp', '.gif'))):
-            change_image_datetime(
-                file,
-                (CURRENT_DATE - DESIRED_DATE),
-                OVERWRITE_DATEDIGITIZED,
-                OVERWRITE_DATEORIGINAL)
-        else:
-            continue
-else:
-    print("Press any key to exit.")
-    input()
+    file_count = get_num_of_pics(os.listdir(os.getcwd()))
+    print(f"{file_count} picture files were found\nContinue? (y/n)")
+
+    if input() == "y":
+        for file in os.listdir(os.getcwd()):
+            if (file.lower().endswith((
+                '.png', '.jpg',
+                '.jpeg', '.tiff',
+                '.bmp', '.gif'))):
+                change_image_datetime(
+                    file,
+                    (CURRENT_DATE - DESIRED_DATE),
+                    OVERWRITE_DATEDIGITIZED,
+                    OVERWRITE_DATEORIGINAL)
+            else:
+                continue
+    elif input() == "n":
+        print("Program will now exit.")
+        return
+    else:
+        print("invalid input, please try again.")
+
+if __name__ == "__main__":
+    main()
