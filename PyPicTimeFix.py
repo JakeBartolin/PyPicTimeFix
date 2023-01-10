@@ -47,7 +47,7 @@ def is_file_type_pic(filename):
 def print_num_of_pics(given_directory):
     '''Prints the number of picture files in a given directory.'''
     pic_count = 0
-    for file in os.listdir(given_directory):
+    for file in given_directory:
         if is_file_type_pic(file):
             pic_count += 1
     print(f"{pic_count} picture files were found.")    
@@ -99,7 +99,8 @@ def main():
     print("Continue? (y/n)")
     # TODO: Clean this up. (Break into functions?)
     while True:
-        if input() == "y":
+        user_input = input()
+        if user_input == "y":
             for file in os.listdir(os.getcwd()):
                 if is_file_type_pic(file):
                     change_image_datetime(
@@ -107,7 +108,7 @@ def main():
                         (CURRENT_DATE - DESIRED_DATE))
                 else:
                     continue
-        elif input() == "n":
+        elif user_input == "n":
             print("Program will now exit.")
             break
         else:
