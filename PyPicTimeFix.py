@@ -1,5 +1,4 @@
-'''
-This script will determine the difference between two dates and then
+'''This script will determine the difference between two dates and then
 shift the EXIF metadata of all picture files in the same directory by
 the date difference.
 '''
@@ -34,31 +33,38 @@ OVERWRITE_DATEDIGITIZED = True
 OVERWRITE_DATEORIGINAL = True
 
 
-def get_num_of_pics(given_directory):
-    '''Returns the number of picture files in a given directory.'''
+def is_file_type_pic(filename):
+    '''Returns True is the given filename of type string ends in
+    .png .jpg .jpeg .tiff .bmp or .gif.
+    '''
+    if (filename.lower().endswith((
+            '.png', '.jpg',
+            '.jpeg', '.tiff',
+            '.bmp', '.gif'))):
+        return True
+    return False
 
-    file_count = 0
-
+def print_num_of_pics(given_directory):
+    '''Prints the number of picture files in a given directory.'''
+    pic_count = 0
     for file in os.listdir(given_directory):
-        if (file.lower().endswith((
-                '.png', '.jpg',
-                '.jpeg', '.tiff',
-                '.bmp', '.gif'))):
-            file_count += 1
-    
-    return file_count
+        if is_file_type_pic(file):
+            pic_count += 1
+    print(f"{pic_count} picture files were found.")    
 
+def write_metadata(image, exif_field, metadata):
+    metadata = metadata.strftime(DATETIME_STR_FORMAT)
+    setattr(image, exif_field, metadata)
+    print(f"SET {image.name} DATETIME: {metadata}")
 
 def change_image_datetime(
     image_filename,
-    date_delta,
-    overwrite_datedigitized,
-    overwrite_dateoriginal):
-    
-    image = Image(image_filename)
-    
+    date_delta):
+
     # Create a datetime object to store the current datetime data
-    # so we can simply add the delta to the datetime object below.
+    # so we can simply subtract the delta from the datetime object
+    # to get our final fixed_date. datetime.datetime handles the math
+    image = Image(image_filename)
     fixed_date = datetime.datetime(
         year = int(image.get("datetime")[0:4]),
         month = int(image.get("datetime")[5:7]),
@@ -69,49 +75,43 @@ def change_image_datetime(
     )
     fixed_date -= date_delta
     
-    if image.get("datetime") == "None" or image.get("datetime") == "":
+    if (image.get("datetime") == "None" or
+        image.get("datetime") == "" or
+        image.get("datetime") == None):
+        # Since there is no datetime data in field to work with
+        # we throw a message telling the user and then stop working
+        # with this image.
         print(f"!!! NO EXIF DATA IN {image_filename}\n"
               + "!!! CANNOT DETERMINE ORIGINAL DATETIME\n"
               + "!!! IMAGE SKIPPED")
         return
 
-    image.datetime = fixed_date.strftime(DATETIME_STR_FORMAT)
-    print(f"SET {image_filename} DATETIME: {fixed_date}")
-        
-    if overwrite_datedigitized:
-        image.datetime_digitized = fixed_date.strftime(DATETIME_STR_FORMAT)
-        print(f"SET {image_filename} DATETIME_DIGITIZED: {fixed_date}")
-        
-    if overwrite_dateoriginal:
-        image.datetime_original = fixed_date.strftime(DATETIME_STR_FORMAT)
-        print(f"SET {image_filename} DATETIME_ORIGINAL: {fixed_date}")
-    
+    write_metadata(image, "datetime", fixed_date)
+    if OVERWRITE_DATEDIGITIZED:
+        write_metadata(image, "datetime_digitized", fixed_date)  
+    if OVERWRITE_DATEORIGINAL:
+        write_metadata(image, "datetime_original", fixed_date)
     with open(image_filename, 'wb') as new_image_file:
         new_image_file.write(image.get_file())
 
 def main():
-    
-    file_count = get_num_of_pics(os.listdir(os.getcwd()))
-    print(f"{file_count} picture files were found\nContinue? (y/n)")
-
-    if input() == "y":
-        for file in os.listdir(os.getcwd()):
-            if (file.lower().endswith((
-                '.png', '.jpg',
-                '.jpeg', '.tiff',
-                '.bmp', '.gif'))):
-                change_image_datetime(
-                    file,
-                    (CURRENT_DATE - DESIRED_DATE),
-                    OVERWRITE_DATEDIGITIZED,
-                    OVERWRITE_DATEORIGINAL)
-            else:
-                continue
-    elif input() == "n":
-        print("Program will now exit.")
-        return
-    else:
-        print("invalid input, please try again.")
+    print_num_of_pics(os.listdir(os.getcwd()))
+    print("Continue? (y/n)")
+    # TODO: Clean this up. (Break into functions?)
+    while True:
+        if input() == "y":
+            for file in os.listdir(os.getcwd()):
+                if is_file_type_pic(file):
+                    change_image_datetime(
+                        file,
+                        (CURRENT_DATE - DESIRED_DATE))
+                else:
+                    continue
+        elif input() == "n":
+            print("Program will now exit.")
+            break
+        else:
+            print("invalid input, please try again.")
 
 if __name__ == "__main__":
     main()
