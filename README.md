@@ -1,5 +1,5 @@
-# PyPicTimeFix
- A small python 3 script to adjust the XML metadata time of a set of photos by a given offset.
+# py_pic_time_fix
+ A small python 3 script to adjust the EXIF metadata time of a set of photos by a given offset.
 
  # Usage
  0. **Make a backup of all the photos you want to change the date on.** The error checking of `PyPicTimeFix` is pretty scarce and if something goes wrong you want to be able to revert back to your original files.
