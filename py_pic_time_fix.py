@@ -14,7 +14,7 @@ OVERWRITE_DATEDIGITIZED = True
 OVERWRITE_DATEORIGINAL = True
 
 
-def is_file_type_pic(filename):
+def is_file_a_pic(filename):
     '''Returns True is the given filename of type string ends in
     .png .jpg .jpeg .tiff .bmp or .gif.
     '''
@@ -29,7 +29,7 @@ def get_num_of_pics_in(given_directory):
     '''Prints the number of picture files in a given directory.'''
     pic_count = 0
     for file in given_directory:
-        if is_file_type_pic(file):
+        if is_file_a_pic(file):
             pic_count += 1
     return pic_count 
 
@@ -76,6 +76,15 @@ def print_welcome_message():
     
     """)
 
+def print_goodbye_message(images_modified):
+    print(f"{images_modified} images were modified.")
+    print(
+        '''
+        **************************************************************************************
+        *                                  Script Complete                                   *
+        **************************************************************************************'''
+    )
+
 def write_metadata(image, exif_field, metadata):
     """Writes the given metadata to the given EXIF field of the
     given image object.
@@ -84,7 +93,7 @@ def write_metadata(image, exif_field, metadata):
     setattr(image, exif_field, metadata)
     print(f"SET {image.name} DATETIME: {metadata}")
 
-def change_image_datetime(
+def offset_image_datetime(
     image_filename,
     date_delta):
 
@@ -92,7 +101,7 @@ def change_image_datetime(
     # so we can simply subtract the delta from the datetime object
     # to get our final fixed_date. datetime.datetime handles the math
     image = Image(image_filename)
-    fixed_date = datetime.datetime(
+    new_datetime = datetime.datetime(
         year = int(image.get("datetime")[0:4]),
         month = int(image.get("datetime")[5:7]),
         day = int(image.get("datetime")[8:10]),
@@ -100,7 +109,7 @@ def change_image_datetime(
         minute = int(image.get("datetime")[14:16]),
         second = int(image.get("datetime")[17:]),
     )
-    fixed_date -= date_delta
+    new_datetime -= date_delta
     
     if (image.get("datetime") == "None" or
         image.get("datetime") == "" or
@@ -113,25 +122,25 @@ def change_image_datetime(
               + "!!! IMAGE SKIPPED")
         return
 
-    write_metadata(image, "datetime", fixed_date)
+    write_metadata(image, "datetime", new_datetime)
     if OVERWRITE_DATEDIGITIZED:
-        write_metadata(image, "datetime_digitized", fixed_date)  
+        write_metadata(image, "datetime_digitized", new_datetime)  
     if OVERWRITE_DATEORIGINAL:
-        write_metadata(image, "datetime_original", fixed_date)
-    with open(image_filename, 'wb') as new_image_file:
-        new_image_file.write(image.get_file())
+        write_metadata(image, "datetime_original", new_datetime)
+    with open(image_filename, 'wb') as image_file:
+        image_file.write(image.get_file())
 
 def input_datetime_dialog():
     """Returns a datetime object after prompting the user to enter
     the year, month, day, hour, minute and second.
     """
-    year = input("Please enter the year: ")
-    month = input("Please enter the month: ")
-    day = input("Please enter the day: ")
-    hour = input("Please enter the hour: ")
-    minute = input("Please enter the minute: ")
-    second = input("Please enter the second: ")
-    return datetime.datetime(year, month, day, hour, minute, second)
+    return datetime.datetime(
+        year = int(input("Please enter the year: ")),
+        month = int(input("Please enter the month: ")),
+        day = int(input("Please enter the day: ")),
+        hour = int(input("Please enter the hour: ")),
+        minute = int(input("Please enter the minute: ")),
+        second = int(input("Please enter the second: ")))
 
 def main():
     print_welcome_message()
@@ -140,18 +149,20 @@ def main():
     print("Next, let's get the desired (correct) date of THE SAME PICTURE.")
     desired_date = input_datetime_dialog()
 
-    print(f"I see {get_num_of_pics_in(os.listdir(os.getcwd()))} picture files in this folder.\nContinue? (y/n)")
-    if input() == "y":
-        for file in os.listdir(os.getcwd()):
-            if is_file_type_pic(file):
-                change_image_datetime(
-                    file,
-                    (current_date - desired_date))
-            else:
-                continue
-        print("\n\nScript Complete.\n\n")
-    else:
-        print("Script Stopped")
+    print(f"I see {get_num_of_pics_in(os.listdir(os.getcwd()))} picture files in this folder." +
+        "\nDo you want to continue? (Type yes)")
+    if input().lower() != "yes":
+        print('You didn\'t type "yes"\nScript Stopped')
+        return
+
+    images_modified = 0
+    for file in os.listdir(os.getcwd()):
+        if is_file_a_pic(file):
+            offset_image_datetime(file, (current_date - desired_date))
+            images_modified +=1
+        else:
+            continue
+    print_goodbye_message(images_modified)
 
 if __name__ == "__main__":
     main()
