@@ -60,7 +60,59 @@ def print_num_of_pics(given_directory):
             '.jpeg', '.tiff',
             '.bmp', '.gif'))):
             pic_count += 1
-    print(f"{pic_count} picture files were found.")    
+    return pic_count 
+
+def print_welcome_message():
+    print("""\n
+    **************************************************************************************
+    *                                     MIT License                                    *
+    **************************************************************************************
+    
+    Copyright (c) 2023 Jacob Bartolin
+    
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+    
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+    
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+    
+    
+    
+    
+    **************************************************************************************
+    *                             Welcome to Py Pic Time Fix                             *
+    **************************************************************************************
+    
+    This script works by finding the difference between the known (wrong) date
+    of one of your photos and the desired (correct) date of the same photo. Then
+    it will re-date all photos in the same folder as the script by that difference.
+    
+    Before beginning, make sure all the photos you want to change the date on are in
+    the same folder as this script file. Make sure you also have a BACKUP of all the
+    photos in case something goes wrong.
+    
+    """)
+
+def print_goodbye_message(images_modified):
+    print(f"{images_modified} images were modified.")
+    print(
+        '''
+        **************************************************************************************
+        *                                  Script Complete                                   *
+        **************************************************************************************'''
+    )
 
 def write_metadata(image, field_name, field_value, file_name):
     '''Attempts to write metadata to the given image metadata field.
