@@ -3,7 +3,6 @@ shift the EXIF metadata of all picture files in the same directory by
 the date difference.
 '''
 
-
 from exif import Image, DATETIME_STR_FORMAT
 import os
 import datetime
@@ -60,7 +59,7 @@ def print_num_of_pics(given_directory):
             '.jpeg', '.tiff',
             '.bmp', '.gif'))):
             pic_count += 1
-    return pic_count 
+    print(str(pic_count) + " picture files were found in " + str(given_directory))
 
 def print_welcome_message():
     print("""\n
@@ -106,7 +105,7 @@ def print_welcome_message():
     """)
 
 def print_goodbye_message(images_modified):
-    print(f"{images_modified} images were modified.")
+    print(f"{str(images_modified)} images were modified.")
     print(
         '''
         **************************************************************************************
@@ -169,7 +168,6 @@ def change_file_data(
     except:
         print("\033[0;31;40mCould not set 'file_modification_datetime' for " + file_name + "\033[0;0m")
 
-
 def main():
     print_num_of_pics(os.listdir(os.getcwd()))
     print("Continue? (y/n)")
@@ -188,6 +186,8 @@ def main():
             
             # Try to open each file in the directory and write the date
             # offset in the appropriate field(s).
+            images_modified = 0
+            
             for file in os.listdir(os.getcwd()):
                 try:
                     change_file_data(
@@ -195,9 +195,11 @@ def main():
                         (current_date - desired_date),
                         overwrite_datedigitized,
                         overwrite_dateoriginal)
+                    images_modified += 1
                 except:
                     print("\033[0;31;40m" + file + " had a problem and was not modified.\033[0;0m")
-    print("\n\n\033[0;30;42mScript will now exit gracefully.\033[0;0m\n\n")     
+                    
+    print_goodbye_message(images_modified)
 
 if __name__ == "__main__":
     main()
